@@ -2,33 +2,29 @@ package com.belkanoid.waterecord.presentation
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.widget.Toast
 import androidx.camera.core.Camera
-import androidx.camera.core.CameraInfoUnavailableException
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.FocusMeteringAction
-import androidx.camera.core.MeteringPointFactory
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
-import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
-import com.belkanoid.waterecord.R
+import androidx.lifecycle.ViewModelProvider
 import com.belkanoid.waterecord.databinding.FragmentMainBinding
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.TimeUnit
+
 
 class MainFragment : Fragment() {
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var camera: Camera
     private lateinit var binding: FragmentMainBinding
+    private val viewModel by lazy {
+        ViewModelProvider(this)[MainViewModel::class.java]
+    }
 
 
     override fun onCreateView(
@@ -39,9 +35,16 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.root.addView(CropView(requireContext()))
+    }
+    @androidx.camera.core.ExperimentalGetImage
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+
+
 
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
@@ -49,18 +52,35 @@ class MainFragment : Fragment() {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
-    private fun bindPreview(cameraProvider : ProcessCameraProvider) {
-        val preview : Preview = Preview.Builder().build()
-
-        val cameraSelector : CameraSelector = CameraSelector.Builder()
+    @androidx.camera.core.ExperimentalGetImage
+    @SuppressLint("RestrictedApi")
+    private fun bindPreview(cameraProvider: ProcessCameraProvider) {
+        val preview: Preview = Preview.Builder().build()
+        val cameraSelector: CameraSelector = CameraSelector.Builder()
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
+
+
+        val imageCapture = ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+
+            .build()
         preview.setSurfaceProvider(binding.recordCameraView.surfaceProvider)
 
-        camera = cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+        camera = cameraProvider
+            .bindToLifecycle(this as LifecycleOwner, cameraSelector, imageCapture, preview)
+
         torchListener()
         focusListener()
+        shootListener()
+    }
+
+    @androidx.camera.core.ExperimentalGetImage
+    private fun shootListener() {
+        binding.recordCameraShoot.setOnClickListener {
+            binding.imageView.setImageBitmap(binding.recordCameraView.bitmap)
+        }
     }
 
     private fun torchListener() {
@@ -73,35 +93,15 @@ class MainFragment : Fragment() {
     private fun focusListener() {
         binding.recordCameraView.afterMeasured {
             binding.recordCameraView.setOnTouchListener { _, event ->
-                return@setOnTouchListener when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        true
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
-                            binding.recordCameraView.width.toFloat(), binding.recordCameraView.height.toFloat()
-                        )
-                        val autoFocusPoint = factory.createPoint(event.x, event.y)
-                        try {
-                            camera.cameraControl.startFocusAndMetering(
-                                FocusMeteringAction.Builder(
-                                    autoFocusPoint,
-                                    FocusMeteringAction.FLAG_AF
-                                ).apply {
-                                    disableAutoCancel()
-                                }.build()
-                            )
-                        } catch (e: CameraInfoUnavailableException) {
-                            Log.d("ERROR", "cannot access camera", e)
-                        }
-                        true
-                    }
-                    else -> false // Unhandled event.
-                }
+                return@setOnTouchListener viewModel.focusEvent(
+                    event,
+                    camera,
+                    binding.recordCameraView.width,
+                    binding.recordCameraView.height
+                )
             }
         }
     }
-
 
 
 }
