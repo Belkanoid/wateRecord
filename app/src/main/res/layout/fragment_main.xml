@@ -28,7 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/btn_radio" />
 
-    <Button
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/record_cameraShoot"
         android:layout_width="50dp"
         android:layout_height="50dp"

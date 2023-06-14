@@ -1,6 +1,7 @@
 package com.belkanoid.waterecord.presentation
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +26,7 @@ class MainFragment : Fragment() {
     private val viewModel by lazy {
         ViewModelProvider(this)[MainViewModel::class.java]
     }
+    private lateinit var cropView: CropView
 
 
     override fun onCreateView(
@@ -37,7 +39,8 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.root.addView(CropView(requireContext()))
+        cropView = CropView(requireContext())
+        binding.root.addView(cropView)
     }
     @androidx.camera.core.ExperimentalGetImage
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +82,10 @@ class MainFragment : Fragment() {
     @androidx.camera.core.ExperimentalGetImage
     private fun shootListener() {
         binding.recordCameraShoot.setOnClickListener {
-            binding.imageView.setImageBitmap(binding.recordCameraView.bitmap)
+            val previewBitmap = binding.recordCameraView.bitmap!!
+            val rect = cropView.getCroppedRectangle()
+            val croppedBitmap = Bitmap.createBitmap(previewBitmap, rect.left, rect.top, rect.width(), rect.height())
+            binding.imageView.setImageBitmap(croppedBitmap)
         }
     }
 
