@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -17,6 +18,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import com.belkanoid.waterecord.databinding.FragmentMainBinding
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.firebase.ml.vision.FirebaseVision
+import com.google.firebase.ml.vision.common.FirebaseVisionImage
 
 
 class MainFragment : Fragment() {
@@ -85,6 +88,7 @@ class MainFragment : Fragment() {
             val previewBitmap = binding.recordCameraView.bitmap!!
             val rect = cropView.getCroppedRectangle()
             val croppedBitmap = Bitmap.createBitmap(previewBitmap, rect.left, rect.top, rect.width(), rect.height())
+            fetchRecordValue(croppedBitmap)
             binding.imageView.setImageBitmap(croppedBitmap)
         }
     }
@@ -109,5 +113,27 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun fetchRecordValue(bitmap: Bitmap) {
+        val image = FirebaseVisionImage.fromBitmap(bitmap)
+        val detector = FirebaseVision.getInstance()
+            .onDeviceTextRecognizer
+        val result = detector.processImage(image)
+            .addOnSuccessListener { firebaseVisionText ->
+               Toast.makeText(requireContext(), firebaseVisionText.text, Toast.LENGTH_LONG).show()
+            }
+            .addOnFailureListener { e ->
+                // Task failed with an exception
+                // ...
+            }
+        val conditions = CustomModelDownloadConditions.Builder()
+            .requireWifi()
+            .build()
+        FirebaseModelDownloader.getInstance()
+            .getModel("durka", DownloadType.LOCAL_MODEL, conditions)
+            .addOnCompleteListener {
+                // Download complete. Depending on your app, you could enable the ML
+                // feature, or switch from the local model to the remote model, etc.
+            }
+    }
 
 }
