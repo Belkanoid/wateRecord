@@ -11,7 +11,7 @@ import com.belkanoid.waterecord.data.database.entity.RecordDb
 interface RecordDao {
 
     @Query("SELECT * FROM record_item")
-    fun getRecordIdList() : List<RecordDb>
+    fun getRecordIdList() : LiveData<List<RecordDb>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRecordIdItem(shoppingItem: RecordDb)

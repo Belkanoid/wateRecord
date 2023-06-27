@@ -1,5 +1,9 @@
 package com.belkanoid.waterecord.data.repository
 
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.map
 import com.belkanoid.waterecord.data.database.dao.RecordDao
 import com.belkanoid.waterecord.data.database.entity.RecordDb
 import com.belkanoid.waterecord.domain.repository.RecordRepository
@@ -9,12 +13,12 @@ import javax.inject.Inject
 class RecordRepositoryImpl @Inject constructor(
     private val recordDao: RecordDao,
 ): RecordRepository {
-    override suspend fun getRecordList(): List<Record> {
-        return recordDao.getRecordIdList().map { it.toRecord() }
+    override fun getRecordList(): LiveData<List<Record>> = recordDao.getRecordIdList().map { list ->
+        list.map { it.toRecord() }
     }
 
     override suspend fun addRecord(record: Record) {
-        recordDao.addRecordIdItem(RecordDb(1, "sdfasd", 2343L, false))
+        recordDao.addRecordIdItem(record.toRecordDb())
     }
 
     override suspend fun editRecord(record: Record) {
@@ -25,6 +29,6 @@ class RecordRepositoryImpl @Inject constructor(
         recordDao.deleteRecordIdItem(recordId)
     }
 
-    private fun RecordDb.toRecord() = Record(id = this.id, value = this.value, date =  this.date, isHot = this.isHot)
-    private fun Record.toRecordDb() = RecordDb(id = this.id, value = this.value, date =  this.date, isHot = this.isHot)
+    private fun RecordDb.toRecord() = Record(id = this.id, value = this.value, date =  this.date, isHot = this.isHot, image = this.image)
+    private fun Record.toRecordDb() = RecordDb(id = this.id, value = this.value, date =  this.date, isHot = this.isHot, image = this.image)
 }

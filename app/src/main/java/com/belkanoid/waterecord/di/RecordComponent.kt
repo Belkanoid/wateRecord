@@ -1,6 +1,7 @@
 package com.belkanoid.waterecord.di
 
 import android.app.Application
+import androidx.fragment.app.DialogFragment
 import com.belkanoid.waterecord.presentation.main.MainFragment
 import com.belkanoid.waterecord.presentation.recordList.RecordsListFragment
 import dagger.BindsInstance

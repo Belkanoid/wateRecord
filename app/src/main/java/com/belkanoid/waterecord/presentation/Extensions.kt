@@ -1,12 +1,15 @@
 package com.belkanoid.waterecord.presentation
 
+import android.R.attr.data
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.Image
 import android.view.View
 import android.view.ViewTreeObserver
-import androidx.camera.core.impl.utils.MatrixExt.postRotate
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+
 
 inline fun View.afterMeasured(crossinline block: () -> Unit) {
     if (measuredWidth > 0 && measuredHeight > 0) {
@@ -33,4 +36,14 @@ fun Image.getBitmap(): Bitmap {
     val bytes = ByteArray(buffer.capacity())
     buffer[bytes]
     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+}
+
+fun Bitmap.toByteArray(): ByteArray {
+    val stream = ByteArrayOutputStream()
+    this.compress(Bitmap.CompressFormat.PNG, 100, stream)
+    return stream.toByteArray()
+}
+
+fun ByteArray.toBitmap(): Bitmap {
+    return BitmapFactory.decodeByteArray(this, 0, this.size)
 }

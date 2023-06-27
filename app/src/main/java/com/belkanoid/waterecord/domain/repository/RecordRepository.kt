@@ -1,10 +1,11 @@
 package com.belkanoid.waterecord.domain.repository
 
+import androidx.lifecycle.LiveData
 import com.belkanoid.waterecord.domain.entity.Record
 
 interface RecordRepository {
 
-    suspend fun getRecordList(): List<Record>
+    fun getRecordList(): LiveData<List<Record>>
 
     suspend fun addRecord(record: Record)
 

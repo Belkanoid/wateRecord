@@ -7,7 +7,6 @@ import androidx.camera.core.CameraInfoUnavailableException
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.MeteringPointFactory
 import androidx.camera.core.SurfaceOrientedMeteringPointFactory
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.belkanoid.waterecord.domain.entity.Record
@@ -19,6 +18,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val repository: RecordRepository
 ): ViewModel() {
+
+
 
     fun focusEvent(event: MotionEvent, camera: Camera, width: Int, height: Int): Boolean {
         return when (event.action) {
@@ -48,17 +49,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    val list: MutableLiveData<List<Record>> = MutableLiveData()
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            list.postValue(repository.getRecordList())
-        }
-    }
     fun addRecord(record: Record) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.addRecord(record)
-
         }
     }
 }
