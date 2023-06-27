@@ -27,7 +27,7 @@ class RecordItemHolder(
     fun bind(record: Record, diff: String) {
         value.text = record.value
         date.text = convertLongToTime(record.date)
-        type.text = if(record.isHot) "гораячая" else "холодная"
+        type.text = if(record.isHot) "горячая" else "холодная"
         type.setTextColor(
             if(record.isHot) Color.parseColor("#AF2300") else Color.parseColor("#008295")
         )

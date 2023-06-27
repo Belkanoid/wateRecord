@@ -166,13 +166,16 @@ class MainFragment : Fragment(), NewRecordDialog.OnSaveRecordListener {
 
     private fun fetchRecordValue(bitmap: Bitmap) {
         var text = ""
+        //путь до модели, которая лежит на устройстве
         val dataPath = getTessDataPath(requireContext())
-        Log.d("LOL", dataPath)
+        //инициализация
         val tess = TessBaseAPI()
         tess.init(dataPath, "eng")
+        //конфигурация на распознавание только чисел
         tess.setVariable("classify_bln_numeric_mode", "1")
         tess.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "0123456789")
         tess.pageSegMode = TessBaseAPI.PageSegMode.PSM_SINGLE_CHAR
+        //разбиваем изображение на половины и каждую по отдельности распознаем
         val bm1: Bitmap = Bitmap.createBitmap(
             bitmap, 0, 0, bitmap.getWidth()/2, bitmap.getHeight()
         )
@@ -185,7 +188,6 @@ class MainFragment : Fragment(), NewRecordDialog.OnSaveRecordListener {
         text += tess.utF8Text
 
         NewRecordDialog.newInstance(text, bitmap.toByteArray()).show(childFragmentManager, "new dialog")
-
     }
 
     override fun saveRecord(record: Record) {
